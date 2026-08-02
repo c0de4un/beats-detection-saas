@@ -82,5 +82,15 @@ GET /api/v1/history — Получение истории анализов те�
 ## 🤝 Contributing
 Pull Requests приветствуются! Если вы нашли баг или хотите добавить новый алгоритм детекции битов — создавайте Issue или Fork.
 
+### Migrations
+1. Установка утилиты для создания миграций:
+    ```bash
+    cargo install sqlx-cli --no-default-features --features sqlite
+    ```
+2. Создание миграций:
+    ```bash
+    sqlx migrate add create_users_table
+    ```
+
 ## 📄 License
 Этот проект распространяется под лицензией MIT. См. файл LICENSE для подробностей.

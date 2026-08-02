@@ -4,6 +4,7 @@ use serde::Deserialize;
 pub struct Config {
     pub http_server_host: String,
     pub http_server_port: u16,
+    pub db_url: String,
 }
 
 impl Config {
