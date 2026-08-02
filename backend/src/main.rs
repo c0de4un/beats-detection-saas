@@ -13,6 +13,7 @@ use crate::core::config::Config;
 use crate::core::state::AppState;
 use crate::http::responses::health_response::HealthResponse;
 use crate::http::controllers::auth_controller;
+use crate::http::controllers::audio_controller;
 
 #[tokio::main]
 async fn main() {
@@ -45,6 +46,7 @@ async fn main() {
         .route("/api/health", get(health_handler))
         .route("/api/auth/register", post(auth_controller::register))
         .route("/api/auth/login", post(auth_controller::login))
+        .route("/api/audio/upload", post(audio_controller::upload_audio))
         .with_state(state);
 
     let host = config.http_server_host.clone();

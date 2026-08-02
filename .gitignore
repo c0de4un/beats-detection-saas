@@ -3,3 +3,4 @@ docs
 backend/target
 *.env
 backend/database.db
+backend/uploads
