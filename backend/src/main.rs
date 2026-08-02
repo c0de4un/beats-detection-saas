@@ -5,13 +5,14 @@ mod repositories;
 
 use std::net::SocketAddr;
 
-use axum::{routing::get, Router, Json};
+use axum::{routing::get, routing::post, Router, Json};
 use dotenvy::dotenv;
 use sqlx::sqlite::SqlitePoolOptions;
 
 use crate::core::config::Config;
 use crate::core::state::AppState;
 use crate::http::responses::health_response::HealthResponse;
+use crate::http::controllers::auth_controller;
 
 #[tokio::main]
 async fn main() {
@@ -39,6 +40,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/api/health", get(health_handler))
+        .route("/api/auth/register", post(auth_controller::register))
         .with_state(state);
 
     let host = config.http_server_host.clone();
