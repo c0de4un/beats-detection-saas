@@ -1,21 +1,30 @@
-use axum::{routing::get, Router, Json};
-use serde::Serialize;
+mod core;
+mod http;
 
-#[derive(Serialize)]
-struct HealthResponse {
-    status: String,
-    service: String,
-    version: String,
-}
+use std::net::SocketAddr;
+
+use axum::{routing::get, Router, Json};
+use dotenvy::dotenv;
+
+use crate::core::config::Config;
+use crate::http::responses::health_response::HealthResponse;
 
 #[tokio::main]
 async fn main() {
-    println!("Starting Korgi.Beats OSS...");
+    dotenv().ok();
+
+    let config = Config::from_env().expect("Failed to load configuration from .env");
+
+    println!("Starting Korgi.Beats OSS with config: {:?}", config);
 
     let app = Router::new()
         .route("/api/health", get(health_handler));
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let host = config.http_server_host.clone();
+    let port = config.http_server_port;
+    let addr: SocketAddr = format!("{}:{}", host, port).parse().unwrap();
+
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
 
     println!("🚀 Server listening on {}", listener.local_addr().unwrap());
 
