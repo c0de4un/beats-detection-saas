@@ -36,11 +36,15 @@ async fn main() {
 
     println!("✅ Migrations applied successfully.");
 
-    let state = AppState { db: db_pool };
+    let state = AppState {
+        db: db_pool,
+        config: config.clone()
+    };
 
     let app = Router::new()
         .route("/api/health", get(health_handler))
         .route("/api/auth/register", post(auth_controller::register))
+        .route("/api/auth/login", post(auth_controller::login))
         .with_state(state);
 
     let host = config.http_server_host.clone();
