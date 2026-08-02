@@ -1,5 +1,7 @@
 mod core;
 mod http;
+mod models;
+mod repositories;
 
 use std::net::SocketAddr;
 
