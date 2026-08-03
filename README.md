@@ -9,6 +9,7 @@ Also hardcoded Down-Beats range is from 3 to 7.
 [![Rust](https://img.shields.io/badge/Rust-1.97+-orange?logo=rust)](https://www.rust-lang.org/)
 [![Axum](https://img.shields.io/badge/Axum-Latest-blue?logo=rust)](https://github.com/tokio-rs/axum)
 [![Vue 3](https://img.shields.io/badge/Vue_3-TypeScript-green?logo=vue.js)](https://vuejs.org/)
+![Nuxt](https://img.shields.io/badge/Nuxt-3-00DC82?style=for-the-badge&logo=nuxt.js&logoColor=white)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://www.docker.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-WAL-blue)](https://www.sqlite.org/index.html)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
@@ -28,6 +29,14 @@ Open-source сервис для автоматического обнаруже�
 - 🖥️ **Интерактивный UI:** Визуализация аудио-волны (waveform) с маркерами битов на Vue 3. Возможность ручного редактирования (Human-in-the-loop).
 - 📤 **Экспорт в NLE:** Скачивание результатов в JSON, SRT, CSV, а также Premiere Pro EDL / Final Cut XML.
 - 🔌 **RESTful API:** Готовый бэкенд для интеграции в сторонние видеоредакторы и AI-пайплайны.
+
+## 📸 Скриншоты
+
+### Интерфейс аутентификации
+![Аутентификация](assets/ui_auth.jpg)
+
+### Главный интерфейс: Загрузка Аудио-файла
+![Загрузка аудио-файла](assets/ui_index_upload.jpg)
 
 ## 🛠 Технологический стек
 
