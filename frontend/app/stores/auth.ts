@@ -8,7 +8,7 @@ interface User {
 
 export const useAuthStore = defineStore('auth', () => {
     const token = useCookie<string | null>('jwt_token')
-    const user = ref<User | null>(null)
+    const user = useCookie<User | null>('user_data')
 
     const isAuthenticated = computed(() => !!token.value)
 
@@ -20,8 +20,16 @@ export const useAuthStore = defineStore('auth', () => {
     function logout() {
         token.value = null
         user.value = null
-        navigateTo('/auth')
+
+        const router = useRouter()
+        router.push('/auth')
     }
 
-    return { user, token, isAuthenticated, setAuth, logout }
+    return {
+        user,
+        token,
+        isAuthenticated,
+        setAuth,
+        logout
+    }
 })

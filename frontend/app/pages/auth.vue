@@ -1,4 +1,3 @@
-<!-- app/pages/auth.vue -->
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg border border-gray-200">
@@ -64,7 +63,7 @@
         <!-- Переключатель режима -->
         <div class="text-center text-sm">
           <button type="button" @click="isLogin = !isLogin" class="text-indigo-600 hover:text-indigo-500 font-medium">
-            {{ isLogin ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти' }}
+            {{ isLogin ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунта? Войти' }}
           </button>
         </div>
       </Form>
@@ -81,6 +80,7 @@ const isLogin = ref(true)
 const apiError = ref<string | null>(null)
 const authStore = useAuthStore()
 const router = useRouter()
+const { $api } = useNuxtApp()
 
 const schema = yup.object({
   email: yup.string().email('Некорректный email').required('Обязательное поле'),
@@ -90,9 +90,10 @@ const schema = yup.object({
 const onSubmit = async (values: any) => {
   apiError.value = null
   try {
-    const endpoint = isLogin.value ? '/api/auth/login' : '/api/auth/register'
+    const endpoint = isLogin.value ? '/auth/login' : '/auth/register'
 
-    const response = await $fetch(endpoint, {
+    // Используем $api
+    const response = await $api(endpoint, {
       method: 'POST',
       body: {
         email: values.email,

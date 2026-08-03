@@ -1,19 +1,13 @@
-export default defineNuxtPlugin(() => {
+export default defineNuxtPlugin((nuxtApp) => {
     const config = useRuntimeConfig()
+    const token = useCookie<string | null>('jwt_token')
 
-    globalThis.$fetch = $fetch.create({
+    const api = $fetch.create({
         baseURL: config.public.apiBase,
         onRequest({ options }) {
-            const token = useCookie('jwt_token').value
-
-            if (token) {
-                options.headers = options.headers || new Headers()
-
-                const headers = options.headers instanceof Headers
-                    ? options.headers
-                    : new Headers(options.headers as any)
-
-                headers.set('Authorization', `Bearer ${token}`)
+            if (token.value) {
+                const headers = new Headers(options.headers as HeadersInit)
+                headers.set('Authorization', `Bearer ${token.value}`)
                 options.headers = headers
             }
         },
@@ -24,4 +18,10 @@ export default defineNuxtPlugin(() => {
             }
         }
     })
+
+    return {
+        provide: {
+            api
+        }
+    }
 })
