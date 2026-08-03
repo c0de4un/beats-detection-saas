@@ -2,7 +2,9 @@
 
 **High-performance audio beat detection API and Web UI for automated Reels/TikTok editing. Built with Rust, Axum, and Vue 3.**
 
-Analyzer is using Energy-based Onset Detection. 
+Analyzer is using Spectral Flux на FFT + RMS Energy + adaptive threshold + histogram BPM calculation.
+
+Also hardcoded Down-Beats range is from 3 to 7.
 
 [![Rust](https://img.shields.io/badge/Rust-1.97+-orange?logo=rust)](https://www.rust-lang.org/)
 [![Axum](https://img.shields.io/badge/Axum-Latest-blue?logo=rust)](https://github.com/tokio-rs/axum)
