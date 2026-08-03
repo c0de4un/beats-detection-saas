@@ -3,32 +3,23 @@ use axum::{
     http::StatusCode,
     Json,
 };
-use serde::Serialize;
 use uuid::Uuid;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use std::path::Path;
 
-use crate::core::analyzer::{AudioAnalyzer, BeatResult};
 use crate::core::state::AppState;
 use crate::http::middlewares::auth_middleware::AuthUser;
-use crate::models::audio_file::AudioFile;
 use crate::repositories::audio_repository::AudioRepository;
 
 const MAX_FILE_SIZE: usize = 10 * 1024 * 1024; // 10 MB
 const MIN_FILE_SIZE: usize = 1 * 1024; // 1 KB
 
-#[derive(Serialize)]
-pub struct UploadResponse {
-    pub file: AudioFile,
-    pub analysis: BeatResult,
-}
-
 pub async fn upload_audio(
     State(state): State<AppState>,
     auth_user: AuthUser,
     mut multipart: Multipart,
-) -> Result<(StatusCode, Json<UploadResponse>), (StatusCode, Json<serde_json::Value>)> {
+) -> Result<(StatusCode, Json<serde_json::Value>), (StatusCode, Json<serde_json::Value>)> {
     loop {
         let mut field = match multipart.next_field().await {
             Ok(Some(f)) => f,
@@ -97,7 +88,7 @@ pub async fn upload_audio(
 
             let file_id = Uuid::new_v4().to_string();
 
-            let audio_file = match AudioRepository::create(
+            match AudioRepository::create(
                 &state.db,
                 &file_id,
                 &auth_user.id,
@@ -116,39 +107,21 @@ pub async fn upload_audio(
                 }
             };
 
-            let path_for_analysis = audio_file.file_path.clone();
-            let analysis_result = tokio::task::spawn_blocking(move || {
-                AudioAnalyzer::analyze(&path_for_analysis)
-            })
-                .await
-                .map_err(|e| {
-                    (
-                        StatusCode::INTERNAL_SERVER_ERROR,
-                        Json(serde_json::json!({"error": format!("Analysis thread failed: {}", e)})),
-                    )
-                })?;
-
-            let beat_result = match analysis_result {
-                Ok(res) => {
-                    let _ = AudioRepository::update_status(&state.db, &file_id, "analyzed").await;
-                    res
-                },
-                Err(e) => {
-                    let _ = AudioRepository::update_status(&state.db, &file_id, "failed").await;
-                    return Err((
-                        StatusCode::UNPROCESSABLE_ENTITY,
-                        Json(serde_json::json!({"error": format!("Analysis failed: {}", e)})),
-                    ));
-                }
+            let job_id = match state.job_service.enqueue(&file_id, &auth_user.id).await {
+                Ok(id) => id,
+                Err(e) => return Err((StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({"error": e}))))
             };
 
             return Ok((
-                StatusCode::CREATED,
-                Json(UploadResponse {
-                    file: audio_file,
-                    analysis: beat_result
-                }),
-            ));
+                StatusCode::ACCEPTED,
+                Json(serde_json::json!({
+                    "message": "Файл загружен и поставлен в очередь на анализ",
+                    "job_id": job_id,
+                    "audio_file_id": file_id,
+                    "status": "processing"
+                })),
+            ))
+
         }
     }
 

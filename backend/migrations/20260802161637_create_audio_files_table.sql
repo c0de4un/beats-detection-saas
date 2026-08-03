@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS audio_files (
     file_path TEXT NOT NULL,
     size INTEGER NOT NULL,
     status TEXT NOT NULL DEFAULT 'uploaded',
+    bpm REAL NULL,
+    beats_ms TEXT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

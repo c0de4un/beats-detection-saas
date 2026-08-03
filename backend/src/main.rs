@@ -2,18 +2,21 @@ mod core;
 mod http;
 mod models;
 mod repositories;
+mod services;
 
 use std::net::SocketAddr;
-
+use std::sync::Arc;
 use axum::{routing::get, routing::post, Router, Json};
 use dotenvy::dotenv;
 use sqlx::sqlite::SqlitePoolOptions;
+use tokio_util::sync::CancellationToken;
+use tokio::signal;
 
 use crate::core::config::Config;
 use crate::core::state::AppState;
 use crate::http::responses::health_response::HealthResponse;
-use crate::http::controllers::auth_controller;
-use crate::http::controllers::audio_controller;
+use crate::http::controllers::{auth_controller, audio_controller};
+use crate::services::job_service::{JobService, run_worker}; // Импортируем сервис и воркер
 
 #[tokio::main]
 async fn main() {
@@ -37,9 +40,21 @@ async fn main() {
 
     println!("✅ Migrations applied successfully.");
 
+    let cancel_token = CancellationToken::new();
+    let (tx, rx) = tokio::sync::mpsc::channel::<()>(100);
+
+    let job_service = Arc::new(JobService::new(db_pool.clone(), tx));
+
+    let worker_token = cancel_token.clone();
+    let worker_pool = db_pool.clone();
+    tokio::spawn(async move {
+        run_worker(worker_pool, rx, worker_token).await;
+    });
+
     let state = AppState {
         db: db_pool,
-        config: config.clone()
+        config: config.clone(),
+        job_service: job_service.clone(),
     };
 
     let app = Router::new()
@@ -56,7 +71,10 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     println!("🚀 Server listening on {}", listener.local_addr().unwrap());
 
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal(cancel_token))
+        .await
+        .unwrap();
 }
 
 async fn health_handler() -> Json<HealthResponse> {
@@ -65,6 +83,32 @@ async fn health_handler() -> Json<HealthResponse> {
         service: "korgi-beats".to_string(),
         version: env!("CARGO_PKG_VERSION").to_string(),
     };
-
     Json(response)
+}
+
+async fn shutdown_signal(token: CancellationToken) {
+    let ctrl_c = async {
+        signal::ctrl_c().await.expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
+
+    println!("🛑 Shutdown signal received, notifying worker...");
+    token.cancel();
+
+    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
 }

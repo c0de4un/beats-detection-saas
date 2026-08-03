@@ -57,4 +57,34 @@ impl AudioRepository {
             .await?;
         Ok(())
     }
+
+    pub async fn save_analysis(
+        pool: &SqlitePool,
+        id: &str,
+        bpm: f32,
+        beats_ms: &[u64],
+    ) -> Result<(), sqlx::Error> {
+        let beats_json = serde_json::to_string(beats_ms).unwrap_or_else(|_| "[]".to_string());
+
+        sqlx::query(
+            "UPDATE audio_files
+             SET status = 'analyzed', bpm = ?, beats_ms = ?
+             WHERE id = ?"
+        )
+            .bind(bpm)
+            .bind(beats_json)
+            .bind(id)
+            .execute(pool)
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn mark_failed(pool: &SqlitePool, id: &str) -> Result<(), sqlx::Error> {
+        sqlx::query("UPDATE audio_files SET status = 'failed' WHERE id = ?")
+            .bind(id)
+            .execute(pool)
+            .await?;
+        Ok(())
+    }
 }
