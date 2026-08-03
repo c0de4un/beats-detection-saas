@@ -15,7 +15,7 @@ use tokio::signal;
 use crate::core::config::Config;
 use crate::core::state::AppState;
 use crate::http::responses::health_response::HealthResponse;
-use crate::http::controllers::{auth_controller, audio_controller};
+use crate::http::controllers::{auth_controller, audio_controller, job_controller};
 use crate::services::job_service::{JobService, run_worker}; // Импортируем сервис и воркер
 
 #[tokio::main]
@@ -62,6 +62,7 @@ async fn main() {
         .route("/api/auth/register", post(auth_controller::register))
         .route("/api/auth/login", post(auth_controller::login))
         .route("/api/audio/upload", post(audio_controller::upload_audio))
+        .route("/api/jobs", get(job_controller::get_job_status))
         .with_state(state);
 
     let host = config.http_server_host.clone();

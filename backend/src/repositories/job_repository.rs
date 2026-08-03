@@ -34,4 +34,13 @@ impl JobRepository {
             .await?;
         Ok(())
     }
+
+    pub async fn find_by_id(pool: &SqlitePool, id: &str) -> Result<Option<Job>, sqlx::Error> {
+        let job = sqlx::query_as::<_, Job>("SELECT * FROM jobs WHERE id = ?")
+            .bind(id)
+            .fetch_optional(pool)
+            .await?;
+
+        Ok(job)
+    }
 }
