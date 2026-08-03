@@ -2,6 +2,8 @@
 
 **High-performance audio beat detection API and Web UI for automated Reels/TikTok editing. Built with Rust, Axum, and Vue 3.**
 
+Analyzer is using Energy-based Onset Detection. 
+
 [![Rust](https://img.shields.io/badge/Rust-1.97+-orange?logo=rust)](https://www.rust-lang.org/)
 [![Axum](https://img.shields.io/badge/Axum-Latest-blue?logo=rust)](https://github.com/tokio-rs/axum)
 [![Vue 3](https://img.shields.io/badge/Vue_3-TypeScript-green?logo=vue.js)](https://vuejs.org/)
